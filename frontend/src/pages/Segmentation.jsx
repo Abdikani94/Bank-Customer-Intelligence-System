@@ -3,7 +3,6 @@ import { useState } from "react";
 import PageHeader from "../components/PageHeader";
 import SegmentationForm from "../components/SegmentationForm";
 import SegmentationResult from "../components/SegmentationResult";
-
 import { segmentCustomer } from "../services/api";
 
 function Segmentation() {
@@ -20,11 +19,11 @@ function Segmentation() {
       const response = await segmentCustomer(customerData);
       setResult(response);
     } catch (requestError) {
+      const detail = requestError.response?.data?.detail;
       const message =
-        requestError.response?.data?.detail ||
+        (typeof detail === "string" ? detail : null) ||
         requestError.message ||
         "Segmentation request failed.";
-
       setError(String(message));
     } finally {
       setLoading(false);
@@ -34,33 +33,36 @@ function Segmentation() {
   return (
     <section>
       <PageHeader
-        title="Customer Segmentation"
-        description="Assign a customer to Cluster 0 or Cluster 1."
+        eyebrow="Unsupervised learning"
+        title="Customer segmentation"
+        description="Assign a customer to the closest production segment and reveal an actionable profile for targeted engagement."
       />
 
-      {error && <div className="form-message error">{error}</div>}
-
-      <div className="feature-layout">
-        <div className="page-panel no-top-margin">
-          <div className="panel-heading">
-            <h2>Customer Information</h2>
-            <p>Enter the features used by the K-Means clustering model.</p>
-          </div>
-
-          <SegmentationForm
-            onSubmit={handleSegmentation}
-            loading={loading}
-          />
+      {error && (
+        <div className="form-message error page-error" role="alert">
+          <strong>Segmentation unavailable.</strong>
+          <span>{error}</span>
         </div>
+      )}
 
-        <div className="page-panel no-top-margin">
+      <div className="decision-layout">
+        <article className="form-panel">
           <div className="panel-heading">
-            <h2>Segmentation Result</h2>
-            <p>The model assigns the customer to one of two clusters.</p>
+            <span>Customer input</span>
+            <h2>Build the customer profile</h2>
+            <p>The same production-safe fields are used for K-Means assignment.</p>
           </div>
+          <SegmentationForm onSubmit={handleSegmentation} loading={loading} />
+        </article>
 
-          <SegmentationResult result={result} />
-        </div>
+        <aside className="result-panel">
+          <div className="panel-heading">
+            <span>Segment intelligence</span>
+            <h2>Customer segment</h2>
+            <p>Cluster identity, profile explanation, and engagement strategy.</p>
+          </div>
+          <SegmentationResult result={result} loading={loading} />
+        </aside>
       </div>
     </section>
   );

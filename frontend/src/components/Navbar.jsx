@@ -1,50 +1,46 @@
-import { useEffect, useState } from "react";
-import { checkApiHealth } from "../services/api";
+import { Menu, Sparkles } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
-function Navbar() {
-  const [apiStatus, setApiStatus] = useState("checking");
+import { useApiStatus } from "../context/ApiStatusContext";
+import StatusBadge from "./StatusBadge";
 
-  useEffect(() => {
-    let active = true;
+const pageLabels = {
+  "/": "Overview",
+  "/prediction": "Subscription prediction",
+  "/segmentation": "Customer segmentation",
+  "/analytics": "Model analytics",
+  "/about": "Project overview",
+};
 
-    async function verifyApi() {
-      try {
-        await checkApiHealth();
-
-        if (active) {
-          setApiStatus("connected");
-        }
-      } catch {
-        if (active) {
-          setApiStatus("disconnected");
-        }
-      }
-    }
-
-    verifyApi();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const statusText =
-    apiStatus === "connected"
-      ? "API Connected"
-      : apiStatus === "disconnected"
-        ? "API Disconnected"
-        : "Checking API";
+function Navbar({ onMenu }) {
+  const location = useLocation();
+  const { status } = useApiStatus();
 
   return (
     <header className="navbar">
-      <div>
-        <h2>Bank Customer Intelligence System</h2>
-        <p>Machine learning prediction and customer segmentation</p>
+      <div className="navbar-leading">
+        <button
+          className="menu-button"
+          type="button"
+          onClick={onMenu}
+          aria-label="Open navigation"
+        >
+          <Menu size={20} />
+        </button>
+
+        <div>
+          <span className="navbar-eyebrow">Bank customer intelligence</span>
+          <h1>{pageLabels[location.pathname] || "Intelligence platform"}</h1>
+        </div>
       </div>
 
-      <div className={`api-status ${apiStatus}`}>
-        <span className="status-indicator" />
-        {statusText}
+      <div className="navbar-actions">
+        <span className="model-chip">
+          <Sparkles size={14} aria-hidden="true" />
+          2 production models
+        </span>
+
+        <StatusBadge status={status} compact />
       </div>
     </header>
   );
