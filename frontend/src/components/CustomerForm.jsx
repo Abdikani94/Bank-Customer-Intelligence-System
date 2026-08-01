@@ -49,7 +49,9 @@ function CustomerForm({ onSubmit, loading, mode }) {
     const { name, value, type } = event.target;
     setFormData((current) => ({
       ...current,
-      [name]: type === "number" ? Number(value) : value,
+      // Keep an empty numeric input empty while the user is editing it.
+      // Number("") equals 0, which previously made zero impossible to delete.
+      [name]: type === "number" && value !== "" ? Number(value) : value,
     }));
   }
 
@@ -57,17 +59,32 @@ function CustomerForm({ onSubmit, loading, mode }) {
     event.preventDefault();
     setValidationError("");
 
+    if (formData.age === "") {
+      setValidationError("Age is required.");
+      return;
+    }
+
     if (formData.age < 18 || formData.age > 100) {
       setValidationError("Age must be between 18 and 100.");
       return;
     }
 
-    if (formData.campaign < 1) {
+    if (formData.balance === "") {
+      setValidationError("Account balance is required.");
+      return;
+    }
+
+    if (formData.campaign === "" || formData.campaign < 1) {
       setValidationError("Campaign contacts must be at least 1.");
       return;
     }
 
-    await onSubmit(formData);
+    await onSubmit({
+      ...formData,
+      age: Number(formData.age),
+      balance: Number(formData.balance),
+      campaign: Number(formData.campaign),
+    });
   }
 
   function handleReset() {
